@@ -1,39 +1,58 @@
-const inputBox = document.getElementById("input-box")
-const listContainer = document.getElementById("list-container")
+const inputBox = document.getElementById("input-box");
+const listContainer = document.getElementById("list-container");
+const taskList = JSON.parse(localStorage.getItem("taskList")) || [];
 
-function addTask(){
-    if(inputBox.value === ''){
-        alert("You must write something!");
-    }
-    else{
-        let li = document.createElement("li");
-        li.innerHTML = inputBox.value;
-        listContainer.appendChild(li);
-        let span = document.createElement("span")
-        span.innerHTML = "\u00d7";
-        li.appendChild(span)
-    }
-    inputBox.value = "";
-    saveData();
+function addTask() {
+  const taskDescription = inputBox.value.trim();
+
+  if (!taskDescription) {
+    alert("You must write something!");
+    return;
+  }
+
+  const task = {
+    description: taskDescription,
+    completed: false,
+  };
+
+  taskList.push(task);
+  updateTaskList();
+  inputBox.value = "";
 }
 
-listContainer.addEventListener("click", function(e){
-    if(e.target.tagName === "LI"){
-        e.target.classList.toggle("checked");
-        saveData()
+function updateTaskList() {
+  listContainer.innerHTML = "";
+  taskList.forEach((task, index) => {
+    const li = document.createElement("li");
+    li.textContent = task.description;
+    if (task.completed) {
+      li.classList.add("checked");
     }
-    else if(e.target.tagName === "SPAN"){
-        e.target.parentElement.remove();
-        saveData()
-    }
-}, false);
 
-function saveData(){
-    localStorage.setItem("data", listContainer.innerHTML);
+    const deleteButton = document.createElement("span");
+    deleteButton.innerHTML = "\u00d7";
+    deleteButton.addEventListener("click", () => deleteTask(index));
+
+    li.appendChild(deleteButton);
+    li.addEventListener("click", () => toggleCompleted(index));
+    listContainer.appendChild(li);
+  });
+
+  saveData();
 }
 
-function showTask(){
-    listContainer.innerHTML = localStorage.getItem("data");
+function toggleCompleted(index) {
+  taskList[index].completed = !taskList[index].completed;
+  updateTaskList();
 }
 
-showTask()
+function deleteTask(index) {
+  taskList.splice(index, 1);
+  updateTaskList();
+}
+
+function saveData() {
+  localStorage.setItem("taskList", JSON.stringify(taskList));
+}
+
+updateTaskList();
